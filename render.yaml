@@ -6,7 +6,7 @@ services:
     name: mcj-worship-app
     env: node
     # Garante que o Render use uma versão do Node compatível com seu package.json
-    nodeVersion: "18" 
+    # nodeVersion: "18" 
     
     # Comando de Build: Instala dependências do backend e do frontend, e depois builda o frontend.
     buildCommand: npm run render-build
