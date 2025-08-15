@@ -12,7 +12,7 @@ const {
 // ==================== AUTENTICAÇÃO ====================
 
 // Registro de usuário
-router.post('/auth/register', async (req, res) => {
+router.post('/register', async (req, res) => {
   try {
     const { name, email, password, ministry_id, role = 'member' } = req.body;
 
@@ -57,7 +57,7 @@ router.post('/auth/register', async (req, res) => {
 });
 
 // Login
-router.post('/auth/login', async (req, res) => {
+router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -85,7 +85,7 @@ router.post('/auth/login', async (req, res) => {
 });
 
 // Verificar token
-router.get('/auth/me', authenticateToken, (req, res) => {
+router.get('/me', authenticateToken, (req, res) => {
   res.json({ user: req.user });
 });
 
