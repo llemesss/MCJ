@@ -10,11 +10,14 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// CORS configuration for production
+// CORS configuration for production and development
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || process.env.NODE_ENV === 'production' 
-    ? ['https://*.onrender.com', 'https://*.render.com']
-    : ['http://localhost:3000', 'http://localhost:3001'],
+  origin: process.env.CORS_ORIGIN || [
+    'http://localhost:3000', 
+    'http://localhost:3001',
+    'https://*.onrender.com', 
+    'https://*.render.com'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
