@@ -1,32 +1,29 @@
-# render.yaml - Configuração para Aplicação Full-Stack (Node.js + React)
+# render.yaml - Configuração para Site Estático (React)
 
 services:
-  # Serviço principal que roda o backend e serve o frontend
-  - type: web
-    name: mcj-worship-app
-    env: node
-    # Garante que o Render use uma versão do Node compatível com seu package.json
-    # nodeVersion: "18" 
+  # Serviço para o frontend React
+  - type: static
+    name: mcj-frontend
+    # O ambiente para sites estáticos é 'static'
+    env: static 
     
-    # Comando de Build: Instala dependências do backend e do frontend, e depois builda o frontend.
+    # Comando de Build: Instala as dependências e builda apenas o frontend.
+    # O script 'render-build' que criamos continua perfeito para isso.
     buildCommand: npm run render-build
     
-    # Comando de Início: Inicia o seu servidor Express após a build.
-    startCommand: npm start
+    # Diretório de Publicação: Onde os arquivos estáticos (HTML, CSS, JS) estão após o build.
+    staticPublishPath: client/build
 
-    # Variáveis de Ambiente para Backend e Frontend
+    # Configuração para Single Page Application (SPA)
+    # Isso garante que o roteamento do React funcione corretamente.
+    # Todas as requisições são redirecionadas para o index.html.
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+    # Variáveis de Ambiente para o Frontend (usadas durante o build)
     envVars:
-      # Para o Backend (Node.js)
-      - key: NODE_ENV
-        value: production
-      - key: DATABASE_URL
-        # IMPORTANTE: Cole aqui a string de conexão do POOLER do Supabase
-        value: postgresql://postgres.lnxofsqwfkmpphjsgecb:c8h10n4o2@aws-1-us-east-2.pooler.supabase.com:5432/postgres
-      - key: JWT_SECRET
-        # O Render vai gerar um valor aleatório e seguro para esta chave
-        generateValue: true
-      
-      # Para o Frontend (React) - Usadas durante o `npm run build`
       - key: REACT_APP_SUPABASE_URL
         value: https://lnxofsqwfkmpphjsgecb.supabase.co # Cole sua URL do Supabase aqui
       - key: REACT_APP_SUPABASE_ANON_KEY
