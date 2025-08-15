@@ -1,69 +1,41 @@
-# Configuração Simples para Render - Aplicação MCJ
-# Este arquivo automatiza o deploy no Render
+# render.yaml - Configuração para Aplicação Full-Stack (Node.js + React)
 
 services:
-  # Frontend React - Opção Mais Simples
-  - type: static
-    name: mcj-frontend
-    env: static
+  # Serviço principal que roda o backend e serve o frontend
+  - type: web
+    name: mcj-worship-app
+    env: node
+    # Garante que o Render use uma versão do Node compatível com seu package.json
+    nodeVersion: "18" 
+    
+    # O diretório a partir do qual os comandos serão executados.
+    # Como seu package.json está na raiz, não precisamos definir um rootDir.
+    
+    # Comando de Build: Instala dependências do backend e do frontend, e depois builda o frontend.
+    # Usa o script que você já criou no package.json, que está perfeito.
     buildCommand: npm run render-build
-    staticPublishPath: ./client/build
     
-    # Configurações para SPA (Single Page Application)
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
-    
-    # Headers de segurança
-    headers:
-      - path: /*
-        headers:
-          - key: X-Frame-Options
-            value: DENY
-          - key: X-Content-Type-Options
-            value: nosniff
-    
-    # Variáveis de ambiente para Supabase
+    # Comando de Início: Inicia o seu servidor Express após a build.
+    # Usa o script "start" do seu package.json.
+    startCommand: npm start
+
+    # Variáveis de Ambiente para Backend e Frontend
     envVars:
+      # Para o Backend (Node.js)
+      - key: NODE_ENV
+        value: production
+      - key:https://lnxofsqwfkmpphjsgecb.supabase.co
+        # IMPORTANTE: Cole aqui a string de conexão do POOLER do Supabase
+        value: postgresql://postgres.lnxofsqwfkmpphjsgecb:c8h10n4o2@aws-1-us-east-2.pooler.supabase.com:5432/postgres
+      - key: JWT_SECRET
+        # O Render vai gerar um valor aleatório e seguro para esta chave
+        generateValue: true
+      
+      # Para o Frontend (React) - Usadas durante o `npm run build`
       - key: REACT_APP_SUPABASE_URL
-        value: "" # Cole sua URL do Supabase aqui (https://seu-projeto-id.supabase.co)
+        value: https://lnxofsqwfkmpphjsgecb.supabase.co # Cole sua URL do Supabase aqui
       - key: REACT_APP_SUPABASE_ANON_KEY
-        value: "" # Cole sua chave anon do Supabase aqui
-      - key: REACT_APP_NODE_ENV
-        value: "production"
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxueG9mc3F3ZmttcHBoanNnZWNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyNTgwMDAsImV4cCI6MjA3MDgzNDAwMH0.L22_jfMFHJCokN0Vp4ZFpwN6rU5m_hzeKlbAO_3IlE4 # Cole sua chave anon do Supabase aqui
 
-# Configurações globais
+# Habilita a criação de Previews para Pull Requests
 previewsEnabled: true
-previewsExpireAfterDays: 7
-
-# INSTRUÇÕES DE USO:
-# 1. Conecte seu GitHub no Render
-# 2. Selecione este repositório
-# 3. O Render detectará automaticamente este arquivo
-# 4. Configure as variáveis de ambiente se necessário
-# 5. Deploy automático!
-
-# ALTERNATIVA COMPLETA (descomente se quiser backend no Render):
-# - type: web
-#   name: mcj-backend
-#   env: node
-#   buildCommand: npm install
-#   startCommand: npm start
-#   envVars:
-#     - key: NODE_ENV
-#       value: production
-#     - key: PORT
-#       value: 10000
-#     - key: JWT_SECRET
-#       generateValue: true
-#     - key: DATABASE_URL
-#       fromDatabase:
-#         name: mcj-database
-#         property: connectionString
-
-# BANCO DE DADOS POSTGRESQL (descomente se necessário):
-# databases:
-#   - name: mcj-database
-#     databaseName: mcjapp
-#     user: mcjuser
