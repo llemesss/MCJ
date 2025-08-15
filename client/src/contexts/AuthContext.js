@@ -86,26 +86,29 @@ export const AuthProvider = ({ children }) => {
   // Check if user is logged in on app start
   useEffect(() => {
     const checkAuth = async () => {
-      if (state.token) {
+      const token = localStorage.getItem('token');
+      if (token && !state.user && state.loading) {
         try {
           const response = await api.get('/auth/me');
           dispatch({
             type: 'LOGIN_SUCCESS',
             payload: {
-              user: response.data,
-              token: state.token,
+              user: response.data.user,
+              token: token,
             },
           });
         } catch (error) {
+          console.log('Token inválido ou expirado, fazendo logout');
+          localStorage.removeItem('token');
           dispatch({ type: 'LOGOUT' });
         }
-      } else {
+      } else if (!token) {
         dispatch({ type: 'SET_LOADING', payload: false });
       }
     };
 
     checkAuth();
-  }, []);
+  }, [state.user, state.loading]);
 
   const login = async (email, password) => {
     try {

@@ -6,23 +6,51 @@ class SupabaseService {
   // Autenticação e Usuários
   async createUser(userData) {
     try {
-      // Hash da senha
-      const hashedPassword = await bcrypt.hash(userData.password, 10);
+      // Primeiro, criar usuário no Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: userData.email,
+        password: userData.password,
+        options: {
+          data: {
+            name: userData.name,
+            role: userData.role || 'member',
+            ministry_id: userData.ministry_id || null
+          }
+        }
+      });
       
-      const { data, error } = await supabase
-        .from('users')
-        .insert([{
-          ...userData,
-          password: hashedPassword
-        }])
-        .select()
-        .single();
+      if (authError) throw authError;
       
-      if (error) throw error;
+      // Se o usuário foi criado no Auth, inserir dados adicionais na tabela users
+      if (authData.user) {
+        // Hash da senha para armazenar na tabela personalizada
+        const hashedPassword = await bcrypt.hash(userData.password, 10);
+        
+        const { data, error } = await supabase
+          .from('users')
+          .insert([{
+            id: authData.user.id, // Usar o mesmo ID do Auth
+            name: userData.name,
+            email: userData.email,
+            password: hashedPassword,
+            role: userData.role || 'member',
+            ministry_id: userData.ministry_id || null
+          }])
+          .select()
+          .single();
+        
+        if (error) {
+          // Se falhar ao inserir na tabela, tentar deletar do Auth
+          await supabase.auth.admin.deleteUser(authData.user.id);
+          throw error;
+        }
+        
+        // Remover senha do retorno
+        const { password, ...userWithoutPassword } = data;
+        return { user: userWithoutPassword, error: null };
+      }
       
-      // Remover senha do retorno
-      const { password, ...userWithoutPassword } = data;
-      return { user: userWithoutPassword, error: null };
+      throw new Error('Falha ao criar usuário');
     } catch (error) {
       return { user: null, error };
     }
