@@ -8,15 +8,10 @@ services:
     # Garante que o Render use uma versão do Node compatível com seu package.json
     nodeVersion: "18" 
     
-    # O diretório a partir do qual os comandos serão executados.
-    # Como seu package.json está na raiz, não precisamos definir um rootDir.
-    
     # Comando de Build: Instala dependências do backend e do frontend, e depois builda o frontend.
-    # Usa o script que você já criou no package.json, que está perfeito.
     buildCommand: npm run render-build
     
     # Comando de Início: Inicia o seu servidor Express após a build.
-    # Usa o script "start" do seu package.json.
     startCommand: npm start
 
     # Variáveis de Ambiente para Backend e Frontend
@@ -24,18 +19,18 @@ services:
       # Para o Backend (Node.js)
       - key: NODE_ENV
         value: production
-      - key:https://lnxofsqwfkmpphjsgecb.supabase.co
+      - key: DATABASE_URL
         # IMPORTANTE: Cole aqui a string de conexão do POOLER do Supabase
-        value: postgresql://postgres.lnxofsqwfkmpphjsgecb:c8h10n4o2@aws-1-us-east-2.pooler.supabase.com:5432/postgres
+        value: "postgres://postgres:[SUA_SENHA]@[HOST_DO_SUPABASE]:6543/postgres"
       - key: JWT_SECRET
         # O Render vai gerar um valor aleatório e seguro para esta chave
         generateValue: true
       
       # Para o Frontend (React) - Usadas durante o `npm run build`
       - key: REACT_APP_SUPABASE_URL
-        value: https://lnxofsqwfkmpphjsgecb.supabase.co # Cole sua URL do Supabase aqui
+        value: "https://SEU-PROJETO-ID.supabase.co" # Cole sua URL do Supabase aqui
       - key: REACT_APP_SUPABASE_ANON_KEY
-        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxueG9mc3F3ZmttcHBoanNnZWNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyNTgwMDAsImV4cCI6MjA3MDgzNDAwMH0.L22_jfMFHJCokN0Vp4ZFpwN6rU5m_hzeKlbAO_3IlE4 # Cole sua chave anon do Supabase aqui
+        value: "COLE_SUA_CHAVE_ANON_AQUI" # Cole sua chave anon do Supabase aqui
 
 # Habilita a criação de Previews para Pull Requests
 previewsEnabled: true
