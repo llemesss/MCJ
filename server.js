@@ -48,7 +48,8 @@ app.head('/api/ping', (req, res) => {
   res.status(200).end();
 });
 
-// Routes - Using Supabase routes as primary (MUST be before static files)
+// Routes - Using Supabase routes only (MUST be before static files)
+// Note: MongoDB routes disabled - no MongoDB connection configured
 app.use('/api/auth', require('./routes/supabaseRoutes'));
 app.use('/api/supabase', require('./routes/supabaseRoutes'));
 
