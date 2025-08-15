@@ -46,10 +46,32 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: error.message });
     }
 
-    res.status(201).json({ 
+    // Gerar token JWT para login automático após registro
+    let token = null;
+    try {
+      const jwt = require('jsonwebtoken');
+      console.log('Gerando token para usuário:', user.id);
+      console.log('JWT_SECRET existe:', !!process.env.JWT_SECRET);
+      
+      token = jwt.sign(
+        { userId: user.id, email: user.email, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+      
+      console.log('Token gerado com sucesso:', !!token);
+    } catch (tokenError) {
+      console.error('Erro ao gerar token:', tokenError);
+    }
+    
+    const responseData = { 
       message: 'Usuário criado com sucesso',
-      user 
-    });
+      user,
+      ...(token && { token })
+    };
+    
+    console.log('Resposta final:', responseData);
+    res.status(201).json(responseData);
   } catch (error) {
     console.error('Erro no registro:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });

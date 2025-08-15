@@ -112,6 +112,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
+      console.log('Iniciando login...');
       dispatch({ type: 'SET_LOADING', payload: true });
       dispatch({ type: 'CLEAR_ERROR' });
       
@@ -120,13 +121,16 @@ export const AuthProvider = ({ children }) => {
         password,
       });
 
+      console.log('Resposta do login:', response.data);
       dispatch({
         type: 'LOGIN_SUCCESS',
         payload: response.data,
       });
 
+      console.log('Login realizado com sucesso');
       return { success: true };
     } catch (error) {
+      console.error('Erro no login:', error);
       const errorMessage = error.response?.data?.message || 'Erro ao fazer login';
       dispatch({ type: 'SET_ERROR', payload: errorMessage });
       return { success: false, error: errorMessage };
@@ -135,18 +139,22 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
+      console.log('Iniciando registro...', userData);
       dispatch({ type: 'SET_LOADING', payload: true });
       dispatch({ type: 'CLEAR_ERROR' });
       
       const response = await api.post('/auth/register', userData);
 
+      console.log('Resposta do registro:', response.data);
       dispatch({
         type: 'LOGIN_SUCCESS',
         payload: response.data,
       });
 
+      console.log('Registro realizado com sucesso');
       return { success: true };
     } catch (error) {
+      console.error('Erro no registro:', error);
       const errorMessage = error.response?.data?.message || 'Erro ao criar conta';
       dispatch({ type: 'SET_ERROR', payload: errorMessage });
       return { success: false, error: errorMessage };
