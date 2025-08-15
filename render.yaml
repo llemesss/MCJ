@@ -1,0 +1,69 @@
+# Configuração Simples para Render - Aplicação MCJ
+# Este arquivo automatiza o deploy no Render
+
+services:
+  # Frontend React - Opção Mais Simples
+  - type: static
+    name: mcj-frontend
+    env: static
+    buildCommand: npm run render-build
+    staticPublishPath: ./client/build
+    
+    # Configurações para SPA (Single Page Application)
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    
+    # Headers de segurança
+    headers:
+      - path: /*
+        headers:
+          - key: X-Frame-Options
+            value: DENY
+          - key: X-Content-Type-Options
+            value: nosniff
+    
+    # Variáveis de ambiente para Supabase
+    envVars:
+      - key: REACT_APP_SUPABASE_URL
+        value: "" # Cole sua URL do Supabase aqui (https://seu-projeto-id.supabase.co)
+      - key: REACT_APP_SUPABASE_ANON_KEY
+        value: "" # Cole sua chave anon do Supabase aqui
+      - key: REACT_APP_NODE_ENV
+        value: "production"
+
+# Configurações globais
+previewsEnabled: true
+previewsExpireAfterDays: 7
+
+# INSTRUÇÕES DE USO:
+# 1. Conecte seu GitHub no Render
+# 2. Selecione este repositório
+# 3. O Render detectará automaticamente este arquivo
+# 4. Configure as variáveis de ambiente se necessário
+# 5. Deploy automático!
+
+# ALTERNATIVA COMPLETA (descomente se quiser backend no Render):
+# - type: web
+#   name: mcj-backend
+#   env: node
+#   buildCommand: npm install
+#   startCommand: npm start
+#   envVars:
+#     - key: NODE_ENV
+#       value: production
+#     - key: PORT
+#       value: 10000
+#     - key: JWT_SECRET
+#       generateValue: true
+#     - key: DATABASE_URL
+#       fromDatabase:
+#         name: mcj-database
+#         property: connectionString
+
+# BANCO DE DADOS POSTGRESQL (descomente se necessário):
+# databases:
+#   - name: mcj-database
+#     databaseName: mcjapp
+#     user: mcjuser
