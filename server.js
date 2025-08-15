@@ -35,7 +35,7 @@ console.log('Servidor configurado para usar Supabase');
 app.get('/api/ping', (req, res) => {
   res.json({
     status: 'ok',
-  timestamp: new Date().toISOString(),
+    timestamp: new Date().toISOString(),
     server: 'MCJ Worship API'
   });
 });
