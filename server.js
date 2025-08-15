@@ -45,7 +45,7 @@ app.head('/api/ping', (req, res) => {
   res.status(200).end();
 });
 
-// Routes - Using Supabase routes as primary
+// Routes - Using Supabase routes as primary (MUST be before static files)
 app.use('/api/auth', require('./routes/supabaseRoutes'));
 app.use('/api/supabase', require('./routes/supabaseRoutes'));
 
@@ -53,8 +53,14 @@ app.use('/api/supabase', require('./routes/supabaseRoutes'));
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, 'client/build')));
   
+  // Catch-all handler: send back React's index.html file for non-API routes
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+    // Only serve index.html for non-API routes
+    if (!req.path.startsWith('/api/')) {
+      res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+    } else {
+      res.status(404).json({ error: 'API route not found' });
+    }
   });
 }
 
