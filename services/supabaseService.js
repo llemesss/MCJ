@@ -103,6 +103,31 @@ class SupabaseService {
     }
   }
 
+  async updateUserProfile(id, updates) {
+    try {
+      // Remover campos que não devem ser atualizados (removendo phone e avatar temporariamente)
+      const allowedFields = ['name'];
+      const filteredUpdates = {};
+      
+      Object.keys(updates).forEach(key => {
+        if (allowedFields.includes(key) && updates[key] !== undefined) {
+          filteredUpdates[key] = updates[key];
+        }
+      });
+
+      const { data, error } = await supabase
+        .from('users')
+        .update(filteredUpdates)
+        .eq('id', id)
+        .select('id, name, email, role, ministry_id, is_active, created_at')
+        .single();
+      
+      return { user: data, error };
+    } catch (error) {
+      return { user: null, error };
+    }
+  }
+
   // Músicas
   async getAllSongs() {
     try {

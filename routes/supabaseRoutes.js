@@ -122,6 +122,35 @@ router.get('/me', authenticateToken, (req, res) => {
   res.json({ user: req.user });
 });
 
+// Atualizar perfil do usuário
+router.put('/profile', authenticateToken, async (req, res) => {
+  try {
+    const { name, phone, avatar } = req.body;
+    
+    const { user, error } = await supabaseService.updateUserProfile(req.user.id, {
+      name,
+      phone,
+      avatar
+    });
+
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    if (!user) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+
+    res.json({ 
+      message: 'Perfil atualizado com sucesso',
+      user 
+    });
+  } catch (error) {
+    console.error('Erro ao atualizar perfil:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
 // ==================== MÚSICAS ====================
 
 // Listar todas as músicas

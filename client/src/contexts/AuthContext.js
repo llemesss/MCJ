@@ -90,7 +90,7 @@ export const AuthProvider = ({ children }) => {
       if (token && !state.user && state.loading) {
         try {
           console.log('Verificando token armazenado...');
-          const response = await api.get('/auth/me');
+          const response = await api.get('/supabase/me');
           console.log('Token válido, usuário autenticado:', response.data.user);
           dispatch({
             type: 'LOGIN_SUCCESS',
@@ -120,7 +120,7 @@ export const AuthProvider = ({ children }) => {
       dispatch({ type: 'SET_LOADING', payload: true });
       dispatch({ type: 'CLEAR_ERROR' });
       
-      const response = await api.post('/auth/login', {
+      const response = await api.post('/supabase/login', {
         email,
         password,
       });
@@ -147,7 +147,7 @@ export const AuthProvider = ({ children }) => {
       dispatch({ type: 'SET_LOADING', payload: true });
       dispatch({ type: 'CLEAR_ERROR' });
       
-      const response = await api.post('/auth/register', userData);
+      const response = await api.post('/supabase/register', userData);
 
       console.log('Resposta do registro:', response.data);
       dispatch({
@@ -171,7 +171,7 @@ export const AuthProvider = ({ children }) => {
 
   const updateProfile = async (profileData) => {
     try {
-      const response = await api.put('/auth/profile', profileData);
+      const response = await api.put('/supabase/profile', profileData);
       dispatch({ type: 'UPDATE_USER', payload: response.data });
       return { success: true };
     } catch (error) {

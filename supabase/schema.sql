@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS users (
   name VARCHAR(255) NOT NULL,
   email VARCHAR(255) UNIQUE NOT NULL,
   password VARCHAR(255) NOT NULL,
+  phone VARCHAR(20),
+  avatar TEXT,
   role VARCHAR(50) DEFAULT 'member',
   ministry_id UUID,
   is_active BOOLEAN DEFAULT true,
