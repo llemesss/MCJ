@@ -1,33 +1,35 @@
-# render.yaml - Configuração para Site Estático (React)
+# render.yaml - Configuração Completa (Frontend + Backend)
 
 services:
-  # Serviço para o frontend React
-  - type: static
-    name: mcj-frontend
-    # O ambiente para sites estáticos é 'static'
-    env: static 
+  # Serviço para o backend Node.js (API)
+  - type: web
+    name: mcj-backend
+    env: node
     
-    # Comando de Build: Instala as dependências e builda apenas o frontend.
-    # O script 'render-build' que criamos continua perfeito para isso.
-    buildCommand: npm run render-build
+    # Comando de Build: Instala dependências do backend e frontend
+    buildCommand: npm install && cd client && npm install && npm run build && cd ..
     
-    # Diretório de Publicação: Onde os arquivos estáticos (HTML, CSS, JS) estão após o build.
-    staticPublishPath: client/build
-
-    # Configuração para Single Page Application (SPA)
-    # Isso garante que o roteamento do React funcione corretamente.
-    # Todas as requisições são redirecionadas para o index.html.
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
-
-    # Variáveis de Ambiente para o Frontend (usadas durante o build)
+    # Comando de Start: Inicia o servidor Node.js
+    startCommand: npm start
+    
+    # Variáveis de Ambiente para o Backend
     envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: SUPABASE_URL
+        value: https://lnxofsqwfkmpphjsgecb.supabase.co
+      - key: SUPABASE_ANON_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxueG9mc3F3ZmttcHBoanNnZWNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyNTgwMDAsImV4cCI6MjA3MDgzNDAwMH0.L22_jfMFHJCokN0Vp4ZFpwN6rU5m_hzeKlbAO_3IlE4
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxueG9mc3F3ZmttcHBoanNnZWNiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTI1ODAwMCwiZXhwIjoyMDcwODM0MDAwfQ.YQlCUBhfJKJGGJHGJHGJHGJHGJHGJHGJHGJHGJHGJHG
+      - key: JWT_SECRET
+        value: sua_jwt_secret_super_segura_aqui_123456789
       - key: REACT_APP_SUPABASE_URL
-        value: https://lnxofsqwfkmpphjsgecb.supabase.co # Cole sua URL do Supabase aqui
+        value: https://lnxofsqwfkmpphjsgecb.supabase.co
       - key: REACT_APP_SUPABASE_ANON_KEY
-        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxueG9mc3F3ZmttcHBoanNnZWNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyNTgwMDAsImV4cCI6MjA3MDgzNDAwMH0.L22_jfMFHJCokN0Vp4ZFpwN6rU5m_hzeKlbAO_3IlE4 # Cole sua chave anon do Supabase aqui
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxueG9mc3F3ZmttcHBoanNnZWNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyNTgwMDAsImV4cCI6MjA3MDgzNDAwMH0.L22_jfMFHJCokN0Vp4ZFpwN6rU5m_hzeKlbAO_3IlE4
 
 # Habilita a criação de Previews para Pull Requests
 previewsEnabled: true

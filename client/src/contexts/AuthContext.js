@@ -89,7 +89,9 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (token && !state.user && state.loading) {
         try {
+          console.log('Verificando token armazenado...');
           const response = await api.get('/auth/me');
+          console.log('Token válido, usuário autenticado:', response.data.user);
           dispatch({
             type: 'LOGIN_SUCCESS',
             payload: {
@@ -98,17 +100,19 @@ export const AuthProvider = ({ children }) => {
             },
           });
         } catch (error) {
-          console.log('Token inválido ou expirado, fazendo logout');
+          console.log('Token inválido ou expirado, fazendo logout:', error.message);
           localStorage.removeItem('token');
           dispatch({ type: 'LOGOUT' });
         }
       } else if (!token) {
+        console.log('Nenhum token encontrado, definindo loading como false');
         dispatch({ type: 'SET_LOADING', payload: false });
       }
     };
 
     checkAuth();
-  }, [state.user, state.loading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.loading]); // Removido state.user para evitar loop infinito
 
   const login = async (email, password) => {
     try {
