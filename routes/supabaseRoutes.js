@@ -9,6 +9,17 @@ const {
   optionalAuth 
 } = require('../middleware/supabaseAuth');
 
+// ==================== PING/HEALTH CHECK ====================
+
+// Rota de ping para verificar se o servidor está funcionando
+router.get('/ping', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    message: 'Servidor funcionando corretamente'
+  });
+});
+
 // ==================== AUTENTICAÇÃO ====================
 
 // Registro de usuário
