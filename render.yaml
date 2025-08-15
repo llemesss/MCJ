@@ -23,7 +23,7 @@ services:
       - key: SUPABASE_ANON_KEY
         value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxueG9mc3F3ZmttcHBoanNnZWNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyNTgwMDAsImV4cCI6MjA3MDgzNDAwMH0.L22_jfMFHJCokN0Vp4ZFpwN6rU5m_hzeKlbAO_3IlE4
       - key: SUPABASE_SERVICE_ROLE_KEY
-        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxueG9mc3F3ZmttcHBoanNnZWNiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTI1ODAwMCwiZXhwIjoyMDcwODM0MDAwfQ.VGhpcyBpcyBhIHBsYWNlaG9sZGVyIGZvciBzZXJ2aWNlX3JvbGUga2V5
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxueG9mc3F3ZmttcHBoanNnZWNiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTI1ODAwMCwiZXhwIjoyMDcwODM0MDAwfQ.Ut4EKmCXltNOb3OtanQU6HYEC6kMTgkBkOTghOCA-tc
       - key: JWT_SECRET
         value: sua_jwt_secret_super_segura_aqui_123456789
       - key: REACT_APP_SUPABASE_URL
