@@ -87,7 +87,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem('token');
-      if (token && !state.user && state.loading) {
+      if (token && !state.user) {
         try {
           console.log('Verificando token armazenado...');
           const response = await api.get('/supabase/me');
@@ -110,9 +110,12 @@ export const AuthProvider = ({ children }) => {
       }
     };
 
-    checkAuth();
+    // Só executa na inicialização da aplicação
+    if (state.loading) {
+      checkAuth();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.loading]); // Removido state.user para evitar loop infinito
+  }, []); // Executa apenas uma vez na inicialização
 
   const login = async (email, password) => {
     try {
