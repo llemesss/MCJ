@@ -11,22 +11,27 @@ const initialState = {
 };
 
 const authReducer = (state, action) => {
+  console.log('AuthReducer - Action:', action.type, 'Payload:', action.payload);
   switch (action.type) {
     case 'SET_LOADING':
+      console.log('AuthReducer - SET_LOADING:', action.payload);
       return {
         ...state,
         loading: action.payload,
       };
     case 'LOGIN_SUCCESS':
+      console.log('AuthReducer - LOGIN_SUCCESS, user:', action.payload.user);
       localStorage.setItem('token', action.payload.token);
       api.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
-      return {
+      const newState = {
         ...state,
         user: action.payload.user,
         token: action.payload.token,
         loading: false,
         error: null,
       };
+      console.log('AuthReducer - Novo estado após LOGIN_SUCCESS:', newState);
+      return newState;
     case 'LOGOUT':
       localStorage.removeItem('token');
       delete api.defaults.headers.common['Authorization'];
@@ -135,6 +140,7 @@ export const AuthProvider = ({ children }) => {
       });
 
       console.log('Login realizado com sucesso');
+      console.log('Estado do usuário após login:', response.data.user);
       return { success: true };
     } catch (error) {
       console.error('Erro no login:', error);

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Login Frontend</title>
+</head>
+<body>
+    <h1>Teste de Login Frontend</h1>
+    <form id="loginForm">
+        <div>
+            <label for="email">Email:</label>
+            <input type="email" id="email" value="teste.login@gmail.com" required>
+        </div>
+        <div>
+            <label for="password">Senha:</label>
+            <input type="password" id="password" value="senha123" required>
+        </div>
+        <button type="submit">Login</button>
+    </form>
+    
+    <div id="result"></div>
+    
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api';
+        
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('result');
+            
+            console.log('Iniciando teste de login...');
+            resultDiv.innerHTML = 'Fazendo login...';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/supabase/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                console.log('Resposta do login:', data);
+                
+                if (response.ok && data.token) {
+                    console.log('Login bem-sucedido!');
+                    console.log('Token:', data.token);
+                    console.log('Usuário:', data.user);
+                    
+                    // Simular armazenamento no localStorage
+                    localStorage.setItem('token', data.token);
+                    
+                    resultDiv.innerHTML = `
+                        <h3>Login bem-sucedido!</h3>
+                        <p><strong>Usuário:</strong> ${data.user.name}</p>
+                        <p><strong>Email:</strong> ${data.user.email}</p>
+                        <p><strong>Token:</strong> ${data.token.substring(0, 50)}...</p>
+                        <p><strong>Próximo passo:</strong> Verificar se o estado seria atualizado corretamente</p>
+                    `;
+                    
+                    // Testar validação do token
+                    setTimeout(async () => {
+                        console.log('Testando validação do token...');
+                        try {
+                            const meResponse = await fetch(`${API_BASE_URL}/supabase/me`, {
+                                headers: {
+                                    'Authorization': `Bearer ${data.token}`
+                                }
+                            });
+                            
+                            const meData = await meResponse.json();
+                            console.log('Dados do /me:', meData);
+                            
+                            if (meResponse.ok) {
+                                resultDiv.innerHTML += '<p><strong>✅ Token válido!</strong> O backend está funcionando corretamente.</p>';
+                            } else {
+                                resultDiv.innerHTML += '<p><strong>❌ Token inválido!</strong></p>';
+                            }
+                        } catch (error) {
+                            console.error('Erro ao validar token:', error);
+                            resultDiv.innerHTML += '<p><strong>❌ Erro ao validar token!</strong></p>';
+                        }
+                    }, 1000);
+                    
+                } else {
+                    console.log('Login falhou:', data);
+                    resultDiv.innerHTML = `<p style="color: red;">Login falhou: ${data.message || 'Erro desconhecido'}</p>`;
+                }
+            } catch (error) {
+                console.error('Erro no login:', error);
+                resultDiv.innerHTML = `<p style="color: red;">Erro: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -52,14 +52,27 @@ const queryClient = new QueryClient({
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
   
+  console.log('ProtectedRoute - loading:', loading, 'user:', user);
+  console.log('ProtectedRoute - localStorage token:', localStorage.getItem('token'));
+  
   if (loading) {
+    console.log('ProtectedRoute - Mostrando loading spinner');
     return <LoadingSpinner />;
   }
   
-  if (!user) {
+  // Temporariamente, vamos verificar se há token no localStorage
+  const hasToken = localStorage.getItem('token');
+  if (!user && !hasToken) {
+    console.log('ProtectedRoute - Usuário não encontrado e sem token, redirecionando para login');
     return <Navigate to="/login" replace />;
   }
   
+  if (!user && hasToken) {
+    console.log('ProtectedRoute - Token encontrado mas usuário não carregado ainda, aguardando...');
+    return <LoadingSpinner />;
+  }
+  
+  console.log('ProtectedRoute - Usuário autenticado, renderizando children');
   return children;
 }
 

@@ -24,7 +24,7 @@ import LoadingSpinner from '../../components/Common/LoadingSpinner';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const { login, loading, error, clearError } = useAuth();
+  const { login, error, clearError, user, loading } = useAuth();
   const navigate = useNavigate();
   
   const {
@@ -35,9 +35,15 @@ const Login = () => {
 
   const onSubmit = async (data) => {
     clearError();
+    console.log('Iniciando processo de login...');
     const result = await login(data.email, data.password);
+    console.log('Resultado do login:', result);
     if (result.success) {
-      navigate('/dashboard');
+      console.log('Login bem-sucedido, redirecionando...');
+      // Usar window.location para forçar redirecionamento
+      window.location.href = '/dashboard';
+    } else {
+      console.log('Login falhou:', result.error);
     }
   };
 
