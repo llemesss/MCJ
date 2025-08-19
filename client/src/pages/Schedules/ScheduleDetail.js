@@ -42,7 +42,7 @@ import {
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import axios from 'axios';
+import api from '../../services/api';
 
 const ScheduleDetail = () => {
   const { id } = useParams();
@@ -67,10 +67,7 @@ const ScheduleDetail = () => {
 
   const fetchScheduleDetails = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`/api/schedules/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(`/schedules/${id}`);
       setSchedule(response.data);
     } catch (err) {
       setError('Erro ao carregar detalhes da escala');
@@ -82,10 +79,7 @@ const ScheduleDetail = () => {
 
   const fetchAvailableMembers = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/members', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/members');
       setAvailableMembers(response.data);
     } catch (err) {
       console.error('Erro ao buscar membros:', err);
@@ -94,10 +88,7 @@ const ScheduleDetail = () => {
 
   const fetchAvailableSongs = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/songs', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/songs');
       setAvailableSongs(response.data);
     } catch (err) {
       console.error('Erro ao buscar músicas:', err);
@@ -106,12 +97,9 @@ const ScheduleDetail = () => {
 
   const handleAddMember = async () => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(`/api/schedules/${id}/members`, {
+      await api.post(`/schedules/${id}/members`, {
         memberId: selectedMember,
         role: memberRole
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
       
       setAddMemberDialogOpen(false);
@@ -125,11 +113,8 @@ const ScheduleDetail = () => {
 
   const handleAddSong = async () => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(`/api/schedules/${id}/songs`, {
+      await api.post(`/schedules/${id}/songs`, {
         songId: selectedSong
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
       
       setAddSongDialogOpen(false);
@@ -142,10 +127,7 @@ const ScheduleDetail = () => {
 
   const handleRemoveMember = async (memberId) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`/api/schedules/${id}/members/${memberId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/schedules/${id}/members/${memberId}`);
       fetchScheduleDetails();
     } catch (err) {
       setError('Erro ao remover membro');

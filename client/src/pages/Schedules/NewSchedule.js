@@ -36,7 +36,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import axios from 'axios';
+import api from '../../services/api';
 
 const NewSchedule = () => {
   const navigate = useNavigate();
@@ -99,10 +99,7 @@ const NewSchedule = () => {
 
   const fetchAvailableMembers = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/members', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/members');
       setAvailableMembers(response.data);
     } catch (err) {
       console.error('Erro ao buscar membros:', err);
@@ -111,10 +108,7 @@ const NewSchedule = () => {
 
   const fetchAvailableSongs = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/songs', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/songs');
       setAvailableSongs(response.data);
     } catch (err) {
       console.error('Erro ao buscar músicas:', err);

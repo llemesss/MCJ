@@ -35,7 +35,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import axios from 'axios';
+import api from '../../services/api';
 
 const Schedules = () => {
   const navigate = useNavigate();
@@ -90,10 +90,7 @@ const Schedules = () => {
 
   const fetchSchedules = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/schedules', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/schedules');
       // A API retorna um objeto com a propriedade schedules
       setSchedules(response.data.schedules || []);
     } catch (err) {

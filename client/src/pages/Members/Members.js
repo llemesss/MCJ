@@ -40,7 +40,7 @@ import {
   Email as EmailIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
-import axios from 'axios';
+import api from '../../services/api';
 
 const Members = () => {
   const { user } = useAuth();
@@ -118,10 +118,7 @@ const Members = () => {
 
   const handleSaveEdit = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.put(`/api/members/${selectedMember._id}`, editMember, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.put(`/members/${selectedMember._id}`, editMember);
       setMembers(members.map(m => m._id === selectedMember._id ? response.data : m));
       setEditDialogOpen(false);
       setSelectedMember(null);
@@ -132,10 +129,7 @@ const Members = () => {
 
   const handleDelete = async () => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`/api/members/${selectedMember._id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/members/${selectedMember._id}`);
       setMembers(members.filter(m => m._id !== selectedMember._id));
       setDeleteDialogOpen(false);
       handleMenuClose();

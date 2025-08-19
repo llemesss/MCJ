@@ -30,7 +30,7 @@ import {
   Delete as DeleteIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
-import axios from 'axios';
+import api from '../../services/api';
 
 const Ministry = () => {
   const { user } = useAuth();
@@ -54,10 +54,7 @@ const Ministry = () => {
   const fetchMinistries = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/members/my-ministries', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/members/my-ministries');
       setMinistries(response.data);
     } catch (err) {
       setError('Erro ao carregar ministérios');

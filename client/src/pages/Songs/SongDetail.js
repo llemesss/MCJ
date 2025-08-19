@@ -31,7 +31,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import YouTubePlayer from '../../components/Player/YouTubePlayer';
 import { useAuth } from '../../contexts/AuthContext';
 import MultitrackPlayer from '../../components/MultitrackPlayer';
-import axios from 'axios';
+import api from '../../services/api';
 
 const SongDetail = () => {  const { id } = useParams();  const navigate = useNavigate();  const { user } = useAuth();  const [song, setSong] = useState(null);  const [loading, setLoading] = useState(true);  const [error, setError] = useState('');  const [isYouTubeLoading, setIsYouTubeLoading] = useState(false);  const [isYouTubePlaying, setIsYouTubePlaying] = useState(false);
 
@@ -41,10 +41,7 @@ const SongDetail = () => {  const { id } = useParams();  const navigate = useNav
 
   const fetchSong = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`/api/songs/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(`/songs/${id}`);
       setSong(response.data);
     } catch (err) {
       setError('Erro ao carregar música: ' + (err.response?.data?.message || err.message));
@@ -55,10 +52,7 @@ const SongDetail = () => {  const { id } = useParams();  const navigate = useNav
 
   const handlePlayCount = async () => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(`/api/songs/${id}/play`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.post(`/songs/${id}/play`, {});
       // Atualizar contagem local
       setSong(prev => ({
         ...prev,

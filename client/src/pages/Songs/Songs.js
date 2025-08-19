@@ -37,7 +37,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import YouTubeAudioPlayer from '../../components/YouTubeAudioPlayer';
-import axios from 'axios';
+import api from '../../services/api';
 
 const Songs = () => {
   const navigate = useNavigate();
@@ -76,9 +76,7 @@ const Songs = () => {
         ...(difficultyFilter && { difficulty: difficultyFilter })
       });
 
-      const response = await axios.get(`/api/songs/ministry/${ministryId}?${params}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(`/api/songs/ministry/${ministryId}?${params}`);
 
       setSongs(response.data.songs || []);
       setTotalPages(response.data.totalPages || 1);
@@ -107,10 +105,7 @@ const Songs = () => {
 
   const handleDelete = async () => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`/api/songs/${selectedSong._id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/api/songs/${selectedSong._id}`);
       setSongs(songs.filter(s => s._id !== selectedSong._id));
       handleMenuClose();
     } catch (err) {
