@@ -314,17 +314,227 @@ router.get('/songs/ministry/:ministryId', optionalAuth, async (req, res) => {
   }
 });
 
-// Processar multitrack (placeholder - funcionalidade não implementada)
-router.post('/songs/process-multitrack', authenticateToken, async (req, res) => {
+// Configuração do multer para upload de arquivos multitrack
+const multer = require('multer');
+const AdmZip = require('adm-zip');
+const { v4: uuidv4 } = require('uuid');
+const fs = require('fs');
+const path = require('path');
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, '../uploads/multitracks');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueName = `${uuidv4()}-${file.originalname}`;
+    cb(null, uniqueName);
+  }
+});
+
+const upload = multer({ 
+  storage,
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/zip' || file.originalname.endsWith('.zip')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Apenas arquivos .zip são permitidos'), false);
+    }
+  },
+  limits: {
+    fileSize: 2 * 1024 * 1024 * 1024 // 2GB
+  }
+});
+
+// Função para limpeza de arquivos antigos
+const cleanupOldFiles = async () => {
   try {
-    // Por enquanto, retornar erro 404 para indicar que a funcionalidade não está implementada
-    res.status(404).json({ 
-      error: 'Funcionalidade de multitrack não implementada ainda',
-      message: 'Esta funcionalidade será implementada em uma versão futura'
-    });
+    const uploadsDir = path.join(__dirname, '..', 'uploads', 'multitracks');
+    const audioDir = path.join(uploadsDir, 'audio');
+    
+    if (!fs.existsSync(audioDir)) {
+      return;
+    }
+    
+    const now = Date.now();
+    const maxAge = 24 * 60 * 60 * 1000; // 24 horas
+    
+    const directories = fs.readdirSync(audioDir);
+    
+    for (const dir of directories) {
+      const dirPath = path.join(audioDir, dir);
+      const stat = fs.statSync(dirPath);
+      
+      if (stat.isDirectory() && (now - stat.mtime.getTime()) > maxAge) {
+        fs.rmSync(dirPath, { recursive: true, force: true });
+        console.log(`Diretório antigo removido: ${dir}`);
+      }
+    }
   } catch (error) {
-    console.error('Erro no processamento de multitrack:', error);
-    res.status(500).json({ error: 'Erro interno do servidor' });
+    console.error('Erro na limpeza de arquivos:', error);
+  }
+};
+
+// Função auxiliar para detectar instrumento baseado no nome do arquivo
+function detectInstrument(fileName) {
+  const name = fileName.toLowerCase();
+  
+  if (name.includes('vocal') || name.includes('voice') || name.includes('lead') || name.includes('singer')) {
+    return 'vocal';
+  } else if (name.includes('guitar') || name.includes('guitarra')) {
+    return 'guitarra';
+  } else if (name.includes('bass') || name.includes('baixo')) {
+    return 'baixo';
+  } else if (name.includes('drum') || name.includes('bateria') || name.includes('kick') || name.includes('snare')) {
+    return 'bateria';
+  } else if (name.includes('piano') || name.includes('keyboard') || name.includes('teclado') || name.includes('keys')) {
+    return 'teclado';
+  } else if (name.includes('violin') || name.includes('violino')) {
+    return 'violino';
+  } else if (name.includes('sax') || name.includes('saxofone')) {
+    return 'saxofone';
+  } else if (name.includes('flute') || name.includes('flauta')) {
+    return 'flauta';
+  } else {
+    return 'outros';
+  }
+}
+
+// Processar multitrack
+router.post('/songs/process-multitrack', authenticateToken, upload.single('multitrack'), async (req, res) => {
+  try {
+    console.log('🎵 Processando multitrack - Usuário:', req.user?.email);
+    
+    // Limpar arquivos antigos antes de processar
+    await cleanupOldFiles();
+    
+    if (!req.file) {
+      console.log('❌ Nenhum arquivo enviado');
+      return res.status(400).json({ message: 'Nenhum arquivo enviado' });
+    }
+
+    console.log('📁 Arquivo recebido:', req.file.originalname, 'Tamanho:', req.file.size);
+    const zipPath = req.file.path;
+    const extractDir = path.join(path.dirname(zipPath), `extracted-${uuidv4()}`);
+    
+    try {
+      // Extrair o arquivo ZIP
+      console.log('📦 Extraindo arquivo ZIP...');
+      const zip = new AdmZip(zipPath);
+      zip.extractAllTo(extractDir, true);
+      
+      // Listar arquivos de áudio extraídos
+      const audioExtensions = ['.mp3', '.wav', '.flac', '.m4a', '.aac', '.ogg'];
+      const tracks = [];
+      
+      const scanDirectory = (dir, relativePath = '') => {
+        const files = fs.readdirSync(dir);
+        
+        files.forEach(file => {
+          const fullPath = path.join(dir, file);
+          const stat = fs.statSync(fullPath);
+          
+          if (stat.isDirectory()) {
+            scanDirectory(fullPath, path.join(relativePath, file));
+          } else {
+            const ext = path.extname(file).toLowerCase();
+            if (audioExtensions.includes(ext)) {
+              const trackName = path.basename(file, ext);
+              const instrument = detectInstrument(trackName);
+              
+              tracks.push({
+                name: trackName,
+                fileName: file,
+                path: path.join(relativePath, file),
+                fullPath: fullPath,
+                instrument: instrument,
+                volume: 1.0,
+                mute: false,
+                solo: false
+              });
+            }
+          }
+        });
+      };
+      
+      scanDirectory(extractDir);
+      console.log(`🎼 Encontrados ${tracks.length} arquivos de áudio`);
+      
+      if (tracks.length === 0) {
+        // Limpar arquivos temporários
+        fs.rmSync(zipPath, { force: true });
+        fs.rmSync(extractDir, { recursive: true, force: true });
+        console.log('❌ Nenhum arquivo de áudio encontrado');
+        return res.status(400).json({ message: 'Nenhum arquivo de áudio encontrado no ZIP' });
+      }
+      
+      // Mover arquivos de áudio para diretório permanente
+      const permanentDir = path.join(__dirname, '../uploads/multitracks/audio', uuidv4());
+      fs.mkdirSync(permanentDir, { recursive: true });
+      console.log('📂 Criado diretório permanente:', permanentDir);
+      
+      const processedTracks = tracks.map((track, index) => {
+        // Criar nome de arquivo mais curto para evitar problemas de caminho longo
+        const ext = path.extname(track.fileName);
+        const shortFileName = `track_${index + 1}_${track.instrument}${ext}`.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const newPath = path.join(permanentDir, shortFileName);
+        
+        try {
+          fs.copyFileSync(track.fullPath, newPath);
+          console.log(`✅ Arquivo copiado: ${track.fileName} -> ${shortFileName}`);
+        } catch (error) {
+          console.error(`❌ Erro ao copiar arquivo ${track.fileName}:`, error.message);
+          throw new Error(`Falha ao processar arquivo: ${track.fileName}`);
+        }
+        
+        return {
+          name: track.name,
+          fileName: track.fileName,
+          filePath: path.relative(path.join(__dirname, '../uploads'), newPath),
+          instrument: track.instrument,
+          volume: track.volume,
+          mute: track.mute,
+          solo: track.solo
+        };
+      });
+      
+      // Limpar arquivos temporários
+      fs.rmSync(zipPath, { force: true });
+      fs.rmSync(extractDir, { recursive: true, force: true });
+      console.log('🧹 Arquivos temporários removidos');
+      
+      console.log('🎉 Multitrack processado com sucesso!');
+      res.json({
+        message: 'Multitrack processada com sucesso',
+        tracks: processedTracks,
+        totalTracks: processedTracks.length
+      });
+      
+    } catch (extractError) {
+      // Limpar arquivos em caso de erro
+      try {
+        if (fs.existsSync(zipPath)) fs.rmSync(zipPath, { force: true });
+        if (fs.existsSync(extractDir)) fs.rmSync(extractDir, { recursive: true, force: true });
+      } catch (cleanupError) {
+        console.error('Erro ao limpar arquivos temporários:', cleanupError);
+      }
+      
+      console.error('❌ Erro ao extrair ZIP:', extractError);
+      
+      // Retornar erro mais específico
+      const errorMessage = extractError.message.includes('Falha ao processar arquivo') 
+        ? extractError.message 
+        : 'Erro ao processar arquivo ZIP. Verifique se o arquivo não está corrompido e tente novamente.';
+      
+      return res.status(400).json({ message: errorMessage });
+    }
+    
+  } catch (error) {
+    console.error('❌ Erro ao processar multitrack:', error);
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 });
 
