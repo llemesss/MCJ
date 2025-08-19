@@ -4,10 +4,17 @@ const supabaseService = require('../services/supabaseService');
 // Middleware para verificar autenticação JWT
 const authenticateToken = async (req, res, next) => {
   try {
+    console.log('=== MIDDLEWARE DE AUTENTICAÇÃO ===');
+    console.log('Headers recebidos:', req.headers.authorization ? 'Authorization header presente' : 'Authorization header ausente');
+    
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
+    console.log('Token extraído:', token ? `${token.substring(0, 20)}...` : 'Token vazio');
+    console.log('JWT_SECRET configurado:', !!process.env.JWT_SECRET);
+
     if (!token) {
+      console.log('❌ Erro: Token não fornecido');
       return res.status(401).json({ 
         error: 'Token de acesso requerido',
         code: 'NO_TOKEN'
@@ -15,7 +22,9 @@ const authenticateToken = async (req, res, next) => {
     }
 
     // Verificar e decodificar o token JWT
+    console.log('Tentando verificar token...');
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('✅ Token verificado com sucesso:', { userId: decoded.userId, email: decoded.email });
     
     // Buscar dados atualizados do usuário no Supabase
     const { user, error } = await supabaseService.getUserById(decoded.userId);
@@ -38,7 +47,10 @@ const authenticateToken = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
+    console.log('❌ Erro na verificação do token:', error.name, '-', error.message);
+    
     if (error.name === 'JsonWebTokenError') {
+      console.log('Token inválido detectado');
       return res.status(403).json({ 
         error: 'Token inválido',
         code: 'INVALID_TOKEN'
@@ -46,6 +58,7 @@ const authenticateToken = async (req, res, next) => {
     }
     
     if (error.name === 'TokenExpiredError') {
+      console.log('Token expirado detectado');
       return res.status(403).json({ 
         error: 'Token expirado',
         code: 'EXPIRED_TOKEN'
