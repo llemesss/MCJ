@@ -447,6 +447,47 @@ router.post('/ministries', authenticateToken, requireAdmin, async (req, res) => 
 
 // ==================== MEMBROS/MINISTÉRIOS (Compatibilidade) ====================
 
+// Buscar membros do ministério do usuário
+router.get('/members', authenticateToken, async (req, res) => {
+  try {
+    const { data: user, error } = await supabaseService.getUserById(req.user.userId);
+    
+    if (error || !user) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+
+    // Se o usuário não tem ministério, retornar array vazio
+    if (!user.ministry_id) {
+      return res.json([]);
+    }
+
+    // Buscar todos os membros do mesmo ministério
+    const supabase = require('../config/supabase');
+    const { data: members, error: membersError } = await supabase
+      .from('users')
+      .select('id, name, email, role')
+      .eq('ministry_id', user.ministry_id);
+    
+    if (membersError) {
+      console.error('Erro ao buscar membros:', membersError);
+      return res.status(500).json({ error: 'Erro ao buscar membros' });
+    }
+
+    // Formatar resposta para compatibilidade com frontend (usar _id)
+    const formattedMembers = members.map(member => ({
+      _id: member.id,
+      name: member.name,
+      email: member.email,
+      role: member.role
+    }));
+    
+    res.json(formattedMembers);
+  } catch (error) {
+    console.error('Erro ao buscar membros:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
 // Buscar ministérios do usuário (compatibilidade com frontend)
 router.get('/members/my-ministries', authenticateToken, async (req, res) => {
   try {
