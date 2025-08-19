@@ -272,6 +272,62 @@ router.post('/songs/:id/play', optionalAuth, async (req, res) => {
   }
 });
 
+// Buscar música por ID
+router.get('/songs/:id', optionalAuth, async (req, res) => {
+  try {
+    const supabase = require('../config/supabase');
+    const { data: song, error } = await supabase
+      .from('songs')
+      .select('*')
+      .eq('id', req.params.id)
+      .single();
+    
+    if (error) {
+      return res.status(404).json({ error: 'Música não encontrada' });
+    }
+    
+    res.json(song);
+  } catch (error) {
+    console.error('Erro ao buscar música:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// Buscar músicas por ministério
+router.get('/songs/ministry/:ministryId', optionalAuth, async (req, res) => {
+  try {
+    const supabase = require('../config/supabase');
+    const { data: songs, error } = await supabase
+      .from('songs')
+      .select('*')
+      .eq('ministry_id', req.params.ministryId)
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+    
+    res.json(songs || []);
+  } catch (error) {
+    console.error('Erro ao buscar músicas do ministério:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// Processar multitrack (placeholder - funcionalidade não implementada)
+router.post('/songs/process-multitrack', authenticateToken, async (req, res) => {
+  try {
+    // Por enquanto, retornar erro 404 para indicar que a funcionalidade não está implementada
+    res.status(404).json({ 
+      error: 'Funcionalidade de multitrack não implementada ainda',
+      message: 'Esta funcionalidade será implementada em uma versão futura'
+    });
+  } catch (error) {
+    console.error('Erro no processamento de multitrack:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
 // ==================== ESCALAS ====================
 
 // Listar escalas
@@ -382,6 +438,97 @@ router.post('/ministries', authenticateToken, requireAdmin, async (req, res) => 
     res.status(201).json({ 
       message: 'Ministério criado com sucesso',
       ministry 
+    });
+  } catch (error) {
+    console.error('Erro ao criar ministério:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// ==================== MEMBROS/MINISTÉRIOS (Compatibilidade) ====================
+
+// Buscar ministérios do usuário (compatibilidade com frontend)
+router.get('/members/my-ministries', authenticateToken, async (req, res) => {
+  try {
+    const { data: user, error } = await supabaseService.getUserById(req.user.userId);
+    
+    if (error || !user) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+
+    // Se o usuário tem ministry_id, buscar o ministério
+    if (user.ministry_id) {
+      const supabase = require('../config/supabase');
+      const { data: ministry, error: ministryError } = await supabase
+        .from('ministries')
+        .select('*')
+        .eq('id', user.ministry_id)
+        .single();
+      
+      if (!ministryError && ministry) {
+        return res.json([{
+          ministry: ministry,
+          role: user.role,
+          joinedAt: user.created_at
+        }]);
+      }
+    }
+    
+    // Se não tem ministério, retornar array vazio
+    res.json([]);
+  } catch (error) {
+    console.error('Erro ao buscar ministérios do usuário:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// Criar ministério (compatibilidade com frontend)
+router.post('/members/ministry', authenticateToken, async (req, res) => {
+  try {
+    const { name, description, church } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ 
+        error: 'Nome do ministério é obrigatório' 
+      });
+    }
+
+    const { ministry, error } = await supabaseService.createMinistry({
+      name,
+      description: description || '',
+      leader_id: req.user.userId
+    });
+
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    // Atualizar o usuário para associá-lo ao ministério
+    const supabase = require('../config/supabase');
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ 
+        ministry_id: ministry.id,
+        role: 'admin'
+      })
+      .eq('id', req.user.userId);
+
+    if (updateError) {
+      console.error('Erro ao atualizar usuário:', updateError);
+    }
+
+    res.status(201).json({
+      _id: ministry.id,
+      name: ministry.name,
+      description: ministry.description,
+      church: church || '',
+      createdBy: req.user.userId,
+      members: [{
+        user: req.user.userId,
+        role: 'admin',
+        instruments: [],
+        joinedAt: new Date()
+      }]
     });
   } catch (error) {
     console.error('Erro ao criar ministério:', error);
