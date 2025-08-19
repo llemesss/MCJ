@@ -52,6 +52,7 @@ app.head('/api/ping', (req, res) => {
 // Note: MongoDB routes disabled - no MongoDB connection configured
 app.use('/api/auth', require('./routes/supabaseRoutes'));
 app.use('/api/supabase', require('./routes/supabaseRoutes'));
+app.use('/api', require('./routes/supabaseRoutes'));
 
 // Serve static files from React build
 if (process.env.NODE_ENV === 'production') {
